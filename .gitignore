@@ -1,7 +1,6 @@
 # This .gitignore file should be placed at the root of your Unity project directory
-#
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
-#
+
 .utmp/
 /[Ll]ibrary/
 /[Tt]emp/
@@ -11,6 +10,14 @@
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 *.log
+
+# Explicitly ignore stray SDK build outputs
+/[Aa]ssets/bin/
+/[Aa]ssets/obj/
+/[Aa]ssets/**/*.csproj
+/[Aa]ssets/**/Directory.Build.*
+/[Tt]emp/bin/
+/[Tt]emp/obj/
 
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be commited to version control.
 *.blend1
@@ -86,7 +93,7 @@ InitTestScene*.unity*
 /[Aa]ssets/Addressables_Temp*
 # By default, Addressables content builds will generate addressables_content_state.bin
 # files in platform-specific subfolders, for example:
-# /Assets/AddressableAssetsData/OSX/addressables_content_state.bin
+/Assets/AddressableAssetsData/OSX/addressables_content_state.bin
 /[Aa]ssets/AddressableAssetsData/*/*.bin*
 
 # Visual Scripting auto-generated files

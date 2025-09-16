@@ -26,8 +26,10 @@ public class DragonMover : MonoBehaviour
     public LayerMask groundLayer;
 
     [Header("Fly")]
-    public float flyImpulse = 10f;         // upward boost when entering flight
+    public float flyImpulse = 10f;         // flight burst per tap
     public float doubleTapTime = 0.35f;    // time window for the 2nd tap
+    public float maxFlapUpSpeed = 6f; // cap for upward speed from repeated flaps
+
 
     [Header("Gravity")]
     public float normalGravityScale = 2.5f;
@@ -132,6 +134,13 @@ public class DragonMover : MonoBehaviour
     void OnJumpCanceled(InputAction.CallbackContext ctx)
     {
         jumpHeld = false; // releases glide / enables jump cut
+
+        // TAP = flap (only while flying)
+        if (isFlying && !IsGrounded())
+        {
+            Flap();
+            if (debugLogs) Debug.Log("Flight: flap on release");
+        }
     }
 
     void OnJumpPerformed(InputAction.CallbackContext ctx)
@@ -152,7 +161,7 @@ public class DragonMover : MonoBehaviour
             return;
         }
 
-        // 2) In air: if second tap within window, enter flight
+        // 3) Airborne and second tap within window → enter flight (no upward boost)
         if (!groundedNow && !isFlying && (now - lastJumpTapTime) <= doubleTapTime)
         {
             EnterFlight();
@@ -160,7 +169,7 @@ public class DragonMover : MonoBehaviour
             return;
         }
 
-        // 3) In air but not within window → remember this tap as potential first tap
+        // 4) Airborne first tap (not within window yet) → record as potential first tap
         if (!groundedNow && !isFlying)
         {
             lastJumpTapTime = now;
@@ -187,7 +196,7 @@ public class DragonMover : MonoBehaviour
         }
 
         // variable jump height (cut on release)
-        if (!jumpHeld && rb.linearVelocity.y > 0f)
+        if (!jumpHeld && !isFlying && rb.linearVelocity.y > 0f)
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * jumpCutMultiplier);
 
         // sprite flip
@@ -201,6 +210,8 @@ public class DragonMover : MonoBehaviour
             {
                 // glide (slow fall when holding)
                 rb.gravityScale = glideGravityScale;
+                if (rb.linearVelocity.y > 0f)
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f); // kill upward motion while held
                 if (rb.linearVelocity.y < maxGlideFallSpeed)
                     rb.linearVelocity = new Vector2(rb.linearVelocity.x, maxGlideFallSpeed);
             }
@@ -278,12 +289,18 @@ public class DragonMover : MonoBehaviour
         if (animator) animator.SetTrigger(JumpHash);
     }
 
+    void Flap()
+    {
+        float newVy = rb.linearVelocity.y + flyImpulse;      // add a small burst
+        if (newVy > maxFlapUpSpeed) newVy = maxFlapUpSpeed;  // cap upward speed
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, newVy);
+    }
     void EnterFlight()
     {
         isFlying = true;
         rb.gravityScale = flyGravityScale;
         // give a one-off upward impulse (but don't reduce existing upward velocity)
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Max(rb.linearVelocity.y, flyImpulse));
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Min(rb.linearVelocity.y, 0f)); // no upward on entry
         if (animator) animator.SetBool(IsFlyingHash, true);
     }
 

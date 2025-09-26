@@ -68,10 +68,6 @@ public class DragonMover : MonoBehaviour
     bool crawlHeld;          // Down + horiz
     bool hideHeld;           // Down only
 
-    // Attacks
-    bool kickPressed;
-    bool attackPressed;
-
     // Grounding
     bool grounded;
 
@@ -130,14 +126,6 @@ public class DragonMover : MonoBehaviour
             input.Player.Run.performed += OnRunPerformed;
             input.Player.Run.canceled  += OnRunCanceled;
         } else if (debugLogs) Debug.LogWarning("Input action 'Run' missing.");
-
-        if (input.Player.Kick != null)
-            input.Player.Kick.performed += OnKickPerformed;
-        else if (debugLogs) Debug.LogWarning("Input action 'Kick' missing.");
-
-        if (input.Player.Attack != null)
-            input.Player.Attack.performed += OnAttackPerformed;
-        else if (debugLogs) Debug.LogWarning("Input action 'Attack' missing.");
     }
 
     void OnDisable()
@@ -153,10 +141,6 @@ public class DragonMover : MonoBehaviour
             input.Player.Run.performed -= OnRunPerformed;
             input.Player.Run.canceled  -= OnRunCanceled;
         }
-        if (input.Player.Kick != null)
-            input.Player.Kick.performed -= OnKickPerformed;
-        if (input.Player.Attack != null)
-            input.Player.Attack.performed -= OnAttackPerformed;
 
         input.Disable();
     }
@@ -165,8 +149,6 @@ public class DragonMover : MonoBehaviour
     void OnMove(InputAction.CallbackContext ctx) => moveInput = ctx.ReadValue<Vector2>();
     void OnRunPerformed(InputAction.CallbackContext ctx) => runHeld = true;
     void OnRunCanceled (InputAction.CallbackContext ctx) => runHeld = false;
-    void OnKickPerformed(InputAction.CallbackContext ctx) { kickPressed = true; }
-    void OnAttackPerformed(InputAction.CallbackContext ctx) { attackPressed = true; }
 
     void OnJumpCanceled(InputAction.CallbackContext ctx)
     {
@@ -310,8 +292,6 @@ public class DragonMover : MonoBehaviour
             }
             animator.SetInteger(SwimDirHash, swimDir);
 
-            if (kickPressed) { animator.SetTrigger("Kick"); kickPressed = false; }
-            if (attackPressed) { animator.SetTrigger("Attack"); attackPressed = false; }
         }
     }
 

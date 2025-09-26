@@ -2,8 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Animator))]
-[RequireComponent(typeof(SpriteRenderer))]
+
 public class DragonMover : MonoBehaviour
 {
     [Header("Move")]
@@ -23,6 +22,7 @@ public class DragonMover : MonoBehaviour
     [Header("Ground Check")]
     public Transform groundCheck;
     public float groundRadius = 0.15f;
+    public float groundRadiusCrouch = 0.15f; 
     public LayerMask groundLayer;
 
     [Header("Fly")]
@@ -107,8 +107,8 @@ public class DragonMover : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        animator = animator ? animator : GetComponent<Animator>();
-        sprite = sprite ? sprite : GetComponent<SpriteRenderer>();
+        animator = animator ?? GetComponentInChildren<Animator>(true);
+        sprite   = sprite   ?? GetComponentInChildren<SpriteRenderer>(true);
 
         input = new InputSystem_Actions();
         rb.gravityScale = normalGravityScale;
@@ -211,6 +211,15 @@ public class DragonMover : MonoBehaviour
 
     void Update()
     {
+        // locomotion calc (land/air booleans)
+        bool moving = Mathf.Abs(moveInput.x) > 0.01f;
+        bool down = moveInput.y < -0.5f;
+        bool horiz = Mathf.Abs(moveInput.x) > 0.1f;
+
+        hideHeld  = down && !horiz;   // down only
+        crawlHeld = down && horiz;    // down + horiz
+        bool running = runHeld && grounded && moving;
+        
         bool wasGrounded = grounded;
         grounded = IsGrounded();
 
@@ -277,15 +286,6 @@ public class DragonMover : MonoBehaviour
             if (debugLogs) Debug.Log("Flight: exited (grounded)");
         }
 
-        // locomotion calc (land/air booleans)
-        bool moving = Mathf.Abs(moveInput.x) > 0.01f;
-        bool down = moveInput.y < -0.5f;
-        bool horiz = Mathf.Abs(moveInput.x) > 0.1f;
-
-        hideHeld  = down && !horiz;   // down only
-        crawlHeld = down && horiz;    // down + horiz
-        bool running = runHeld && grounded && moving;
-
         // Animator params (always set)
         if (animator)
         {
@@ -293,8 +293,8 @@ public class DragonMover : MonoBehaviour
             animator.SetBool(IsMovingHash, moving);
             animator.SetBool(IsRunningHash, running);
             animator.SetBool(IsCrawlingHash, !_inWater && crawlHeld);
-            animator.SetBool(IsHidingHash,  !_inWater && hideHeld);
-            animator.SetFloat(SpeedHash,  Mathf.Abs(rb.linearVelocity.x), 0.06f, Time.deltaTime);
+            animator.SetBool(IsHidingHash, !_inWater && hideHeld);
+            animator.SetFloat(SpeedHash, Mathf.Abs(rb.linearVelocity.x), 0.06f, Time.deltaTime);
             animator.SetFloat(VSpeedHash, rb.linearVelocity.y);
 
             // --- Water-specific animator params ---
@@ -305,12 +305,12 @@ public class DragonMover : MonoBehaviour
             int swimDir = 0; // Side/Idle by default
             if (_inWater && !_isAtSurface)
             {
-                if (moveInput.y >  0.1f)      swimDir = 1;   // Up
+                if (moveInput.y > 0.1f) swimDir = 1;   // Up
                 else if (moveInput.y < -0.1f) swimDir = -1;  // Down
             }
             animator.SetInteger(SwimDirHash, swimDir);
 
-            if (kickPressed)   { animator.SetTrigger("Kick");   kickPressed = false; }
+            if (kickPressed) { animator.SetTrigger("Kick"); kickPressed = false; }
             if (attackPressed) { animator.SetTrigger("Attack"); attackPressed = false; }
         }
     }

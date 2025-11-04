@@ -249,6 +249,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   patrolSpeed: 1.5
   chaseSpeed: 2.25
+  walkTime: 2
+  idleTime: 1
   leftEdge: {fileID: 0}
   rightEdge: {fileID: 0}
   groundMask:
@@ -261,6 +263,9 @@ MonoBehaviour:
   attackRange: 0.8
   attackCooldown: 0.8
   contactDamage: 1
+  playerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!61 &1356579986
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -420,7 +425,7 @@ Transform:
   m_GameObject: {fileID: 1356579984}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10.118815, y: 11.472418, z: 0}
+  m_LocalPosition: {x: -5.38, y: 10.95, z: 0}
   m_LocalScale: {x: 4, y: 4, z: 4}
   m_ConstrainProportionsScale: 1
   m_Children: []
